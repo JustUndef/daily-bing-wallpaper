@@ -1,6 +1,7 @@
 # Build and distribution directories
 build/
 dist/
+installer_output/
 
 # Python cache
 __pycache__/
