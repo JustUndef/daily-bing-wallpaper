@@ -27,7 +27,7 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -63,7 +63,6 @@ var
   DownloadFolderPage: TInputDirWizardPage;
   MarketPage: TInputOptionWizardPage;
   ResolutionPage: TInputOptionWizardPage;
-  ImageCountEdit: TEdit;
   DownloadFolderVar: String;
   MarketVar: String;
   ResolutionVar: String;
@@ -239,7 +238,7 @@ begin
     TaskName := 'BingWallpaperDownloader';
     
     { Create scheduled task for daily autostart if selected }
-    if IsTaskSelected('autostart') then
+    if WizardIsTaskSelected('autostart') then
     begin
       { Delete existing task if it exists }
       Exec('schtasks.exe', '/Delete /TN "' + TaskName + '" /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
@@ -305,7 +304,7 @@ begin
     end;
     
     { Create startup shortcut for login-based autostart if selected }
-    if IsTaskSelected('autostartwithlogin') then
+    if WizardIsTaskSelected('autostartwithlogin') then
     begin
       CreateShellLink(
         ExpandConstant('{userstartup}\{#MyAppName}.lnk'),
