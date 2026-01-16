@@ -161,9 +161,15 @@ begin
   if CurPageID = ConfigPage.ID then
   begin
     { Validate image count }
-    if not TryStrToInt(ConfigPage.Values[0], Count) or (Count < 1) or (Count > 8) then
-    begin
-      MsgBox('Please enter a number between 1 and 8 for wallpaper count.', mbError, MB_OK);
+    try
+      Count := StrToInt(ConfigPage.Values[0]);
+      if (Count < 1) or (Count > 8) then
+      begin
+        MsgBox('Please enter a number between 1 and 8 for wallpaper count.', mbError, MB_OK);
+        Result := False;
+      end;
+    except
+      MsgBox('Please enter a valid number between 1 and 8 for wallpaper count.', mbError, MB_OK);
       Result := False;
     end;
   end;
