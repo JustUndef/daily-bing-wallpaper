@@ -59,7 +59,10 @@ Type: filesandordirs; Name: "{code:GetDownloadFolder}"
 
 [Code]
 var
-  ConfigPage: TInputQueryWizardPage;
+  ConfigPage: TWizardPage;
+  ImageCountEdit: TNewEdit;
+  ImageCountLabel: TNewStaticText;
+  SetWallpaperCheckbox: TNewCheckBox;
   DownloadFolderPage: TInputDirWizardPage;
   MarketPage: TInputOptionWizardPage;
   ResolutionPage: TInputOptionWizardPage;
@@ -138,16 +141,34 @@ begin
   ResolutionPage.Add('HD Plus (1920x1200)');
   ResolutionPage.SelectedValueIndex := 0;
   
-  { Configuration Page }
-  ConfigPage := CreateInputQueryPage(ResolutionPage.ID,
-    'Download Settings', 'Configure download behavior',
-    'Specify how many wallpapers to download and other options.');
+  { Configuration Page - Custom page with edit box and checkbox }
+  ConfigPage := CreateCustomPage(ResolutionPage.ID,
+    'Download Settings', 'Configure download behavior');
   
-  ConfigPage.Add('Number of wallpapers to download (1-8):', False);
-  ConfigPage.Values[0] := '8';
+  { Label for image count }
+  ImageCountLabel := TNewStaticText.Create(ConfigPage);
+  ImageCountLabel.Parent := ConfigPage.Surface;
+  ImageCountLabel.Caption := 'Number of wallpapers to download (1-8):';
+  ImageCountLabel.Left := 0;
+  ImageCountLabel.Top := 0;
+  ImageCountLabel.Width := ConfigPage.SurfaceWidth;
   
-  ConfigPage.Add('Set latest wallpaper as desktop background:', False);
-  ConfigPage.Values[1] := 'yes';
+  { Edit box for image count }
+  ImageCountEdit := TNewEdit.Create(ConfigPage);
+  ImageCountEdit.Parent := ConfigPage.Surface;
+  ImageCountEdit.Left := 0;
+  ImageCountEdit.Top := ImageCountLabel.Top + ImageCountLabel.Height + 4;
+  ImageCountEdit.Width := 100;
+  ImageCountEdit.Text := '8';
+  
+  { Checkbox for wallpaper setting }
+  SetWallpaperCheckbox := TNewCheckBox.Create(ConfigPage);
+  SetWallpaperCheckbox.Parent := ConfigPage.Surface;
+  SetWallpaperCheckbox.Caption := 'Set latest wallpaper as desktop background';
+  SetWallpaperCheckbox.Left := 0;
+  SetWallpaperCheckbox.Top := ImageCountEdit.Top + ImageCountEdit.Height + 16;
+  SetWallpaperCheckbox.Width := ConfigPage.SurfaceWidth;
+  SetWallpaperCheckbox.Checked := True;
 end;
 
 { Validate user input }
@@ -161,7 +182,7 @@ begin
   begin
     { Validate image count }
     try
-      Count := StrToInt(ConfigPage.Values[0]);
+      Count := StrToInt(ImageCountEdit.Text);
       if (Count < 1) or (Count > 8) then
       begin
         MsgBox('Please enter a number between 1 and 8 for wallpaper count.', mbError, MB_OK);
@@ -213,10 +234,10 @@ begin
     end;
     
     { Store image count }
-    ImageCountVar := StrToIntDef(ConfigPage.Values[0], 8);
+    ImageCountVar := StrToIntDef(ImageCountEdit.Text, 8);
     
     { Store wallpaper setting preference }
-    SetLatestVar := CompareText(ConfigPage.Values[1], 'yes') = 0;
+    SetLatestVar := SetWallpaperCheckbox.Checked;
     
     { Create download folder }
     ForceDirectories(DownloadFolderVar);
