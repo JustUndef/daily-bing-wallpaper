@@ -140,43 +140,44 @@ try {
         Warn "Inno Setup nicht gefunden - Installer-Build übersprungen"
         Info "Installiere mit: choco install innosetup -y"
       } else {
-      Info "Baue Installer mit Inno Setup..."
-      
-      # Create installer_output directory
-      $InstallerOutputDir = Join-Path $ProjectDir "installer_output"
-      New-Item -ItemType Directory -Force -Path $InstallerOutputDir | Out-Null
-      
-      # Create dummy LICENSE.txt if it doesn't exist
-      $LicensePath = Join-Path $ProjectDir "LICENSE.txt"
-      if (!(Test-Path $LicensePath)) {
-        Warn "LICENSE.txt nicht gefunden - erstelle Platzhalter"
-        Set-Content -Path $LicensePath -Value "MIT License - Please add your license text here"
-      }
-      
-      # Build the installer
-      & $InnoSetupPath $InnoScriptPath
-      
-      $InstallerPath = Join-Path $InstallerOutputDir "BingWallpaperDownloader_Setup.exe"
-      if (Test-Path $InstallerPath) {
-        Info "Installer erstellt: $InstallerPath"
+        Info "Baue Installer mit Inno Setup..."
         
-        # Sign installer if signing is enabled
-        if ($Sign -and (Test-Path $SignToolPath)) {
-          Info "Signiere Installer..."
-          $signArgs = @("sign","/fd","SHA256")
-          switch ($CertSource) {
-            "store" { $signArgs += "/a" }
-            "pfx" {
-              $signArgs += @("/f",$PfxPath)
-              if ($PfxPassword) { $signArgs += @("/p",$PfxPassword) }
-            }
-          }
-          $signArgs += @("/td","SHA256","/tr",$TimeStampUrl,$InstallerPath)
-          & $SignToolPath $signArgs
-          Info "Installer signiert."
+        # Create installer_output directory
+        $InstallerOutputDir = Join-Path $ProjectDir "installer_output"
+        New-Item -ItemType Directory -Force -Path $InstallerOutputDir | Out-Null
+        
+        # Create dummy LICENSE.txt if it doesn't exist
+        $LicensePath = Join-Path $ProjectDir "LICENSE.txt"
+        if (!(Test-Path $LicensePath)) {
+          Warn "LICENSE.txt nicht gefunden - erstelle Platzhalter"
+          Set-Content -Path $LicensePath -Value "MIT License - Please add your license text here"
         }
-      } else {
-        Warn "Installer wurde nicht erstellt."
+        
+        # Build the installer
+        & $InnoSetupPath $InnoScriptPath
+        
+        $InstallerPath = Join-Path $InstallerOutputDir "BingWallpaperDownloader_Setup.exe"
+        if (Test-Path $InstallerPath) {
+          Info "Installer erstellt: $InstallerPath"
+          
+          # Sign installer if signing is enabled
+          if ($Sign -and (Test-Path $SignToolPath)) {
+            Info "Signiere Installer..."
+            $signArgs = @("sign","/fd","SHA256")
+            switch ($CertSource) {
+              "store" { $signArgs += "/a" }
+              "pfx" {
+                $signArgs += @("/f",$PfxPath)
+                if ($PfxPassword) { $signArgs += @("/p",$PfxPassword) }
+              }
+            }
+            $signArgs += @("/td","SHA256","/tr",$TimeStampUrl,$InstallerPath)
+            & $SignToolPath $signArgs
+            Info "Installer signiert."
+          }
+        } else {
+          Warn "Installer wurde nicht erstellt."
+        }
       }
     }
   }
