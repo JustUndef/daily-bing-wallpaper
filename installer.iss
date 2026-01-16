@@ -6,6 +6,7 @@
 #define MyAppPublisher "Your Company Name"
 #define MyAppURL "https://github.com/yourusername/daily-bing-wallpaper"
 #define MyAppExeName "BingWallpaperDownloader.exe"
+#define MyTrayExeName "BingWallpaperTray.exe"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -37,14 +38,17 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "autostart"; Description: "Run daily at system startup (downloads wallpaper automatically)"; GroupDescription: "Startup Options:"
 Name: "autostartwithlogin"; Description: "Run when user logs in"; GroupDescription: "Startup Options:"
+Name: "starttray"; Description: "Start system tray app at login (for easy management)"; GroupDescription: "System Tray:"
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\{#MyTrayExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"
 Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--help"
 Name: "{group}\Download Folder"; Filename: "{code:GetDownloadFolder}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
@@ -52,6 +56,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Download wallpaper now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyTrayExeName}"; Description: "Start system tray manager"; Flags: nowait postinstall skipifsilent
 Filename: "{code:GetDownloadFolder}"; Description: "Open download folder"; Flags: nowait postinstall skipifsilent shellexec
 
 [UninstallDelete]
@@ -337,6 +342,20 @@ begin
         0,
         SW_SHOWNORMAL);
     end;
+    
+    { Create tray app startup shortcut if selected }
+    if WizardIsTaskSelected('starttray') then
+    begin
+      CreateShellLink(
+        ExpandConstant('{userstartup}\{#MyAppName} Manager.lnk'),
+        'Bing Wallpaper Manager',
+        ExpandConstant('{app}\{#MyTrayExeName}'),
+        '',
+        '',
+        ExpandConstant('{app}\{#MyTrayExeName}'),
+        0,
+        SW_SHOWNORMAL);
+    end;
   end;
 end;
 
@@ -350,8 +369,9 @@ begin
     { Remove scheduled task }
     Exec('schtasks.exe', '/Delete /TN "BingWallpaperDownloader" /F', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     
-    { Remove startup shortcut }
+    { Remove startup shortcuts }
     DeleteFile(ExpandConstant('{userstartup}\{#MyAppName}.lnk'));
+    DeleteFile(ExpandConstant('{userstartup}\{#MyAppName} Manager.lnk'));
     
     { Remove registry settings }
     RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\BingWallpaperDownloader');

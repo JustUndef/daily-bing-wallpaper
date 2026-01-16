@@ -2,9 +2,11 @@ param(
   # Pfade
   [string]$ProjectDir = (Resolve-Path ".").Path,
   [string]$EntryPy = "bing_wallpaper.py",
+  [string]$TrayPy = "bing_wallpaper_tray.py",
   [string]$BuildDir = "build",
   [string]$DistDir = "dist",
   [string]$ExeName = "BingWallpaperDownloader.exe",
+  [string]$TrayExeName = "BingWallpaperTray.exe",
 
   # Nuitka
   [switch]$Console = $false,
@@ -23,7 +25,7 @@ param(
   [string]$TimeStampUrl = "http://timestamp.digicert.com?alg=sha256",
 
   # Python-Abhängigkeiten
-  [string[]]$PipInstall = @("nuitka","requests"),
+  [string[]]$PipInstall = @("nuitka","requests","pystray","pillow"),
   [switch]$UpgradePip = $true,
 
   # Installer
@@ -88,6 +90,50 @@ try {
   $ExePath = Join-Path $DistDir $ExeName
   if (!(Test-Path $ExePath)) { throw "Build fehlgeschlagen: $ExePath nicht gefunden." }
   Info "EXE erstellt: $ExePath"
+
+  # 3b) Build Tray App if it exists
+  $TrayPath = Join-Path $ProjectDir $TrayPy
+  if (Test-Path $TrayPath) {
+    Info "Baue Tray-App mit Nuitka..."
+    $trayNuitkaArgs = @()
+    if ($OneFile) { $trayNuitkaArgs += "--onefile" }
+    $trayNuitkaArgs += "--windows-disable-console"
+    if ($IconIco) { $trayNuitkaArgs += "--windows-icon-from-ico=$IconIco" }
+    if ($UseMSVC) { $trayNuitkaArgs += "--msvc=latest" }
+    if ($LTO) { $trayNuitkaArgs += "--lto=yes" }
+    $trayNuitkaArgs += @(
+      "--output-dir=$DistDir",
+      "--remove-output",
+      "--disable-ccache",
+      "--nofollow-imports"
+    )
+    $trayNuitkaArgs += "--output-filename=$TrayExeName"
+    
+    & $Py -m nuitka @trayNuitkaArgs $TrayPath
+    
+    $TrayExePath = Join-Path $DistDir $TrayExeName
+    if (Test-Path $TrayExePath) {
+      Info "Tray-App erstellt: $TrayExePath"
+      
+      if ($Sign -and (Test-Path $SignToolPath)) {
+        Info "Signiere Tray-App..."
+        $signArgs = @("sign","/fd","SHA256")
+        switch ($CertSource) {
+          "store" { $signArgs += "/a" }
+          "pfx" {
+            $signArgs += @("/f",$PfxPath)
+            if ($PfxPassword) { $signArgs += @("/p",$PfxPassword) }
+          }
+        }
+        $signArgs += @("/td","SHA256","/tr",$TimeStampUrl,$TrayExePath)
+        & $SignToolPath $signArgs
+      }
+    } else {
+      Warn "Tray-App Build fehlgeschlagen"
+    }
+  } else {
+    Warn "Tray-App Script nicht gefunden: $TrayPath"
+  }
 
   if ($Sign) {
     if (!(Test-Path $SignToolPath)) { 
@@ -187,6 +233,9 @@ try {
   Write-Host "BUILD ERFOLGREICH ABGESCHLOSSEN" -ForegroundColor Green
   Write-Host "=====================================" -ForegroundColor Green
   Write-Host "EXE:       $ExePath" -ForegroundColor Cyan
+  if (Test-Path (Join-Path $DistDir $TrayExeName)) {
+    Write-Host "Tray-App:  $(Join-Path $DistDir $TrayExeName)" -ForegroundColor Cyan
+  }
   if ($BuildInstaller -and (Test-Path (Join-Path $ProjectDir "installer_output\BingWallpaperDownloader_Setup.exe"))) {
     Write-Host "Installer: $(Join-Path $ProjectDir 'installer_output\BingWallpaperDownloader_Setup.exe')" -ForegroundColor Cyan
   }
