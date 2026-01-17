@@ -58,6 +58,28 @@ Automatically downloads daily Bing wallpapers and sets them as your Windows desk
 3. **Visual Studio Build Tools** (for Nuitka) - [Download](https://visualstudio.microsoft.com/downloads/)
    - Install "Desktop development with C++"
 
+### Development Setup (VS Code)
+
+If you want to develop and get IntelliSense working:
+
+```powershell
+# 1. Create virtual environment
+python -m venv .venv
+
+# 2. Activate it
+.\.venv\Scripts\Activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Install dev dependencies (for testing)
+pip install pytest
+
+# 5. Reload VS Code window (Ctrl+Shift+P -> "Reload Window")
+```
+
+After this, VS Code should recognize all imports and provide IntelliSense.
+
 ### Build Steps
 
 #### Option 1: Build Everything (EXE + Installer)
