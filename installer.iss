@@ -42,6 +42,7 @@ Name: "starttray"; Description: "Start system tray app at login (for manual cont
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\{#MyTrayExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

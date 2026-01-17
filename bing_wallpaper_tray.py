@@ -243,8 +243,28 @@ class TrayApp:
         self.icon = None
         
     def create_icon_image(self) -> Image.Image:
-        """Create a simple icon for the system tray"""
-        # Create a 64x64 image with a simple wallpaper icon design
+        """Load the app icon for system tray"""
+        # Try to load the app icon from the same directory as the executable
+        icon_path = Path(__file__).parent / 'app_icon.ico'
+        
+        # If running as compiled exe, look in the executable directory
+        if getattr(sys, 'frozen', False):
+            icon_path = Path(sys.executable).parent / 'app_icon.ico'
+        
+        try:
+            if icon_path.exists():
+                # Load the ICO file and use it
+                img = Image.open(icon_path)
+                # Convert to RGB if needed and resize to appropriate tray size
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                # Resize to 64x64 for best quality in tray
+                img = img.resize((64, 64), Image.Resampling.LANCZOS)
+                return img
+        except Exception as e:
+            print(f"Could not load app_icon.ico: {e}")
+        
+        # Fallback: Create a simple icon if file not found
         img = Image.new('RGB', (64, 64), color='white')
         draw = ImageDraw.Draw(img)
         
