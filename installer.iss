@@ -3,10 +3,11 @@
 
 #define MyAppName "Bing Wallpaper Downloader"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Your Company Name"
+#define MyAppPublisher "Open Source Project"
 #define MyAppURL "https://github.com/yourusername/daily-bing-wallpaper"
 #define MyAppExeName "BingWallpaperDownloader.exe"
 #define MyTrayExeName "BingWallpaperTray.exe"
+#define MyAppDisclaimer "IMPORTANT: This is an unofficial tool not affiliated with Microsoft or Bing. Downloaded wallpaper images are copyrighted by Microsoft and licensed only for personal desktop wallpaper use."
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -29,6 +30,7 @@ WizardStyle=modern
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ArchitecturesInstallIn64BitMode=x64compatible
+InfoBeforeFile=LICENSE.txt
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -45,6 +47,7 @@ Source: "dist\{#MyTrayExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "tray_icon.png"; DestDir: "{app}"; Flags: ignoreversion
 Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
+Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -52,6 +55,7 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"
 Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--help"
 Name: "{group}\Download Folder"; Filename: "{code:GetDownloadFolder}"
+Name: "{group}\License and Legal Information"; Filename: "{app}\LICENSE.txt"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"; Tasks: desktopicon
 

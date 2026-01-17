@@ -1,1 +1,58 @@
-MIT License - Please add your license text here
+MIT License
+
+Copyright (c) 2026 Bing Wallpaper Downloader Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+IMPORTANT LEGAL DISCLAIMER
+================================================================================
+
+This software is an unofficial, third-party tool and is NOT affiliated with,
+endorsed by, or connected to Microsoft Corporation or Bing in any way.
+
+WALLPAPER IMAGE COPYRIGHT NOTICE:
+- All wallpaper images downloaded by this software are © Microsoft Corporation
+  and their respective copyright holders
+- Images are downloaded from Bing's publicly accessible API
+- Images are licensed by Microsoft for use as desktop wallpapers only
+- This software does NOT claim any ownership of the downloaded images
+- Downloaded images should NOT be redistributed, sold, or used for commercial
+  purposes beyond personal desktop wallpaper use
+
+USAGE TERMS:
+This software is provided for personal, non-commercial use only. By using this
+software, you agree to:
+1. Respect Microsoft's intellectual property rights
+2. Use downloaded images solely as personal desktop wallpapers
+3. Not redistribute or commercially exploit downloaded images
+4. Comply with Microsoft's Terms of Service and copyright policies
+
+DISCLAIMER OF LIABILITY:
+The authors and contributors of this software are not responsible for:
+- Any misuse of downloaded images
+- Any violations of Microsoft's terms of service
+- Any copyright infringement claims
+- Any damages resulting from the use of this software
+
+For official Bing wallpaper services, please visit: https://www.bing.com
+
+Microsoft, Bing, and related trademarks are the property of Microsoft Corporation.
+This project uses these names solely for descriptive purposes to indicate
+compatibility and functionality.
