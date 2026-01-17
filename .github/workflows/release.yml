@@ -39,8 +39,9 @@ jobs:
     
     - name: Build executables
       run: |
-        python -m nuitka --onefile --windows-console-mode=disable --msvc=latest --lto=yes --output-dir=dist --remove-output --include-module=logger --assume-yes-for-downloads --output-filename=BingWallpaperDownloader.exe bing_wallpaper.py
-        python -m nuitka --onefile --windows-console-mode=disable --msvc=latest --lto=yes --output-dir=dist --remove-output --include-module=logger --include-data-files=tray_icon.png=tray_icon.png --include-data-files=app_icon.ico=app_icon.ico --assume-yes-for-downloads --output-filename=BingWallpaperTray.exe bing_wallpaper_tray.py
+        echo yes | python -m nuitka --onefile --windows-console-mode=disable --msvc=latest --lto=yes --output-dir=dist --remove-output --include-module=logger --output-filename=BingWallpaperDownloader.exe bing_wallpaper.py
+        echo yes | python -m nuitka --onefile --windows-console-mode=disable --msvc=latest --lto=yes --output-dir=dist --remove-output --include-module=logger --include-data-files=tray_icon.png=tray_icon.png --include-data-files=app_icon.ico=app_icon.ico --output-filename=BingWallpaperTray.exe bing_wallpaper_tray.py
+      shell: cmd
     
     - name: Build installer
       run: |
