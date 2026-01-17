@@ -33,11 +33,30 @@ logger = setup_logger('downloader')
 def load_config() -> dict:
     """Load configuration from JSON file"""
     if not CONFIG_FILE.exists():
-        return {}
+        # Create default config if it doesn't exist
+        default_config = {
+            "download_folder": str(Path.home() / "Pictures" / "BingWallpapers"),
+            "market": "de-DE",
+            "fallback_markets": "en-US",
+            "resolution": "UHD,3840x2160,2560x1440,1920x1200,1920x1080",
+            "image_count": 8,
+            "set_latest": False,
+            "file_mode": "skip",
+            "name_mode": "slug"
+        }
+        try:
+            CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+                json.dump(default_config, f, indent=2)
+            logger.info(f"Created default config file: {CONFIG_FILE}")
+        except Exception as e:
+            logger.warning(f"Could not create config file: {e}")
+        return default_config
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Could not load config file: {e}")
         return {}
 
 def fetch_image_json(mkt: str, idx: int) -> Optional[dict]:

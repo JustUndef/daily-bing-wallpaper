@@ -127,6 +127,17 @@ begin
     Result := GetPicturesFolder() + '\BingWallpapers';
 end;
 
+{ Helper function to kill a process by name }
+function KillProcess(const ProcessName: String): Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('taskkill.exe', '/F /IM "' + ProcessName + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  { ResultCode 128 means process not found, which is also success for our purposes }
+  if ResultCode = 128 then
+    Result := True;
+end;
+
 { Create custom wizard pages }
 procedure InitializeWizard;
 var
@@ -233,6 +244,15 @@ var
   Params: String;
   ResultCode: Integer;
 begin
+  { Kill running processes before installation to prevent file locking issues }
+  if CurStep = ssInstall then
+  begin
+    KillProcess('BingWallpaperTray.exe');
+    Sleep(500);  { Wait for processes to fully terminate }
+    KillProcess('BingWallpaperDownloader.exe');
+    Sleep(500);
+  end;
+  
   if CurStep = ssPostInstall then
   begin
     { Store user selections }
@@ -366,17 +386,6 @@ begin
         SW_SHOWNORMAL);
     end;
   end;
-end;
-
-{ Helper function to kill a process by name }
-function KillProcess(const ProcessName: String): Boolean;
-var
-  ResultCode: Integer;
-begin
-  Result := Exec('taskkill.exe', '/F /IM "' + ProcessName + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  { ResultCode 128 means process not found, which is also success for our purposes }
-  if ResultCode = 128 then
-    Result := True;
 end;
 
 { Helper function to read download folder from config }
