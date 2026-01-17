@@ -59,7 +59,8 @@ Filename: "{app}\{#MyTrayExeName}"; Description: "Start system tray manager"; Fl
 Filename: "{code:GetDownloadFolder}"; Description: "Open download folder"; Flags: nowait postinstall skipifsilent shellexec
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{code:GetDownloadFolder}"
+; Note: We handle wallpaper deletion in code with user prompt
+; Type: filesandordirs; Name: "{code:GetDownloadFolder}"
 
 [Code]
 var
@@ -350,11 +351,84 @@ begin
   end;
 end;
 
+{ Helper function to kill a process by name }
+function KillProcess(const ProcessName: String): Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('taskkill.exe', '/F /IM "' + ProcessName + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  { ResultCode 128 means process not found, which is also success for our purposes }
+  if ResultCode = 128 then
+    Result := True;
+end;
+
+{ Helper function to read download folder from config }
+function GetDownloadFolderFromConfig(): String;
+var
+  ConfigPath: String;
+  ConfigContent: AnsiString;
+  StartPos, EndPos: Integer;
+begin
+  Result := ExpandConstant('{userdocs}\Pictures\BingWallpapers'); { Default }
+  ConfigPath := ExpandConstant('{userappdata}\BingWallpaperDownloader\config.json');
+  
+  if FileExists(ConfigPath) then
+  begin
+    if LoadStringFromFile(ConfigPath, ConfigContent) then
+    begin
+      { Simple JSON parsing to find download_folder value }
+      StartPos := Pos('"download_folder":', ConfigContent);
+      if StartPos > 0 then
+      begin
+        StartPos := StartPos + Length('"download_folder":');
+        { Skip whitespace and opening quote }
+        while (StartPos <= Length(ConfigContent)) and 
+              ((ConfigContent[StartPos] = ' ') or (ConfigContent[StartPos] = #9) or 
+               (ConfigContent[StartPos] = #13) or (ConfigContent[StartPos] = #10)) do
+          StartPos := StartPos + 1;
+        
+        if (StartPos <= Length(ConfigContent)) and (ConfigContent[StartPos] = '"') then
+        begin
+          StartPos := StartPos + 1; { Skip opening quote }
+          EndPos := StartPos;
+          { Find closing quote, handle escaped backslashes }
+          while (EndPos <= Length(ConfigContent)) and (ConfigContent[EndPos] <> '"') do
+          begin
+            if ConfigContent[EndPos] = '\' then
+              EndPos := EndPos + 1; { Skip next char if backslash }
+            EndPos := EndPos + 1;
+          end;
+          
+          if EndPos > StartPos then
+          begin
+            Result := Copy(ConfigContent, StartPos, EndPos - StartPos);
+            { Unescape backslashes }
+            StringChangeEx(Result, '\\', '\', True);
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
 { Cleanup on uninstall }
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ResultCode: Integer;
+  WallpaperFolder: String;
+  DeleteUserData: Boolean;
 begin
+  { Kill running processes BEFORE trying to delete files }
+  if CurUninstallStep = usUninstall then
+  begin
+    { Stop the tray app }
+    KillProcess('BingWallpaperTray.exe');
+    { Stop the main app if running }
+    KillProcess('BingWallpaperDownloader.exe');
+    { Give processes time to fully terminate }
+    Sleep(500);
+  end;
+  
   if CurUninstallStep = usPostUninstall then
   begin
     { Remove scheduled task }
@@ -364,19 +438,33 @@ begin
     DeleteFile(ExpandConstant('{userstartup}\{#MyAppName}.lnk'));
     DeleteFile(ExpandConstant('{userstartup}\{#MyAppName} Manager.lnk'));
     
-    { Remove config file and app data folder }
-    DelTree(ExpandConstant('{userappdata}\BingWallpaperDownloader'), True, True, True);
+    { Ask user about deleting user data (config + wallpapers) }
+    DeleteUserData := MsgBox('Do you want to delete your configuration and all downloaded wallpapers?' + #13#10 + #13#10 +
+                             'Select "Yes" to remove all data (config and wallpapers).' + #13#10 +
+                             'Select "No" to keep your configuration and wallpapers.', 
+                             mbConfirmation, MB_YESNO) = IDYES;
     
-    { Ask if user wants to delete downloaded wallpapers }
-    if MsgBox('Do you want to delete all downloaded wallpapers?', mbConfirmation, MB_YESNO) = IDYES then
+    if DeleteUserData then
     begin
-      { Try to load download folder from config before it's deleted }
-      if FileExists(ExpandConstant('{userappdata}\BingWallpaperDownloader\config.json')) then
+      { Read download folder from config BEFORE deleting it }
+      WallpaperFolder := GetDownloadFolderFromConfig();
+      
+      { Delete config file and app data folder }
+      DelTree(ExpandConstant('{userappdata}\BingWallpaperDownloader'), True, True, True);
+      
+      { Delete downloaded wallpapers }
+      if DirExists(WallpaperFolder) then
       begin
-        { Default to Pictures\BingWallpapers if config read fails }
-        DownloadFolderVar := ExpandConstant('{userdocs}\Pictures\BingWallpapers');
-        DelTree(DownloadFolderVar, True, True, True);
+        DelTree(WallpaperFolder, True, True, True);
       end;
+    end
+    else
+    begin
+      { User wants to keep data - don't delete anything }
+      MsgBox('Your configuration and downloaded wallpapers have been kept in:' + #13#10 +
+             ExpandConstant('{userappdata}\BingWallpaperDownloader') + #13#10 + #13#10 +
+             'Wallpapers folder: ' + GetDownloadFolderFromConfig(), 
+             mbInformation, MB_OK);
     end;
   end;
 end;
