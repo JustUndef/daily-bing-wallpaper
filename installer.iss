@@ -60,9 +60,9 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Download wallpaper now"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\{#MyTrayExeName}"; Description: "Start system tray manager"; Flags: nowait postinstall skipifsilent
-Filename: "{code:GetDownloadFolder}"; Description: "Open download folder"; Flags: nowait postinstall skipifsilent shellexec
+Filename: "{app}\{#MyAppExeName}"; Description: "Download wallpaper now"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{app}\{#MyTrayExeName}"; Description: "Start system tray manager"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{code:GetDownloadFolder}"; Description: "Open download folder"; Flags: nowait postinstall skipifsilent shellexec unchecked
 
 [UninstallDelete]
 ; Note: We handle wallpaper deletion in code with user prompt
@@ -294,6 +294,9 @@ begin
     
     { Create download folder }
     ForceDirectories(DownloadFolderVar);
+    
+    { Create config directory FIRST to ensure it exists }
+    ForceDirectories(ExpandConstant('{userappdata}\BingWallpaperDownloader'));
     
     { Save configuration to JSON file }
     SaveStringToFile(ExpandConstant('{userappdata}\BingWallpaperDownloader\config.json'),

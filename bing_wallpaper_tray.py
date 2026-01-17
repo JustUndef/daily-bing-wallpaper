@@ -83,30 +83,53 @@ class WallpaperManager:
         
     def load_config(self) -> dict:
         """Load configuration from JSON file"""
+        import time
+        
         if not CONFIG_FILE.exists():
-            # Create default config if it doesn't exist
-            default_config = {
-                "download_folder": str(Path.home() / "Pictures" / "BingWallpapers"),
-                "market": "de-DE",
-                "fallback_markets": "en-US",
-                "resolution": "UHD,3840x2160,2560x1440,1920x1200,1920x1080",
-                "image_count": 8,
-                "set_latest": False,
-                "file_mode": "skip",
-                "name_mode": "slug",
-                "user_paused": False
-            }
-            try:
-                CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-                with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(default_config, f, indent=2)
-                logger.info(f"Created default config file: {CONFIG_FILE}")
-            except Exception as e:
-                logger.warning(f"Could not create config file: {e}")
-            return default_config
+            # Wait for installer to write config - poll for up to 3 seconds
+            # This handles race condition where installer is writing config as app starts
+            logger.info("Config file not found, waiting for installer to write it...")
+            max_wait_time = 3.0  # Maximum 3 seconds to wait
+            poll_interval = 0.1  # Check every 100ms
+            waited = 0.0
+            
+            while waited < max_wait_time:
+                time.sleep(poll_interval)
+                waited += poll_interval
+                
+                if CONFIG_FILE.exists():
+                    logger.info(f"Config file appeared after {waited:.1f}s - installer created it")
+                    break
+            
+            # If still doesn't exist after waiting, create default config
+            if not CONFIG_FILE.exists():
+                logger.info("Config file still not found after waiting - creating default config")
+                default_config = {
+                    "download_folder": str(Path.home() / "Pictures" / "BingWallpapers"),
+                    "market": "de-DE",
+                    "fallback_markets": "en-US",
+                    "resolution": "UHD,3840x2160,2560x1440,1920x1200,1920x1080",
+                    "image_count": 8,
+                    "set_latest": False,
+                    "file_mode": "skip",
+                    "name_mode": "slug",
+                    "user_paused": False
+                }
+                try:
+                    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+                    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+                        json.dump(default_config, f, indent=2)
+                    logger.info(f"Created default config file: {CONFIG_FILE}")
+                except Exception as e:
+                    logger.warning(f"Could not create config file: {e}")
+                return default_config
+        
+        # Config file exists - load it
         try:
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                config = json.load(f)
+                logger.info(f"Loaded config from {CONFIG_FILE}")
+                return config
         except Exception as e:
             logger.warning(f"Could not load config file: {e}")
             return {}
