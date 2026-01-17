@@ -295,6 +295,67 @@ class TestWallpaperNavigation:
                             assert manager.current_wallpaper_index == 2
 
 
+class TestJumpToLatest:
+    """Test jump to latest wallpaper functionality"""
+    
+    def test_jump_to_latest_from_middle(self):
+        """Test jumping to latest wallpaper from middle of list"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(5)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        with mock.patch('bing_wallpaper_tray.WallpaperManager.set_wallpaper', return_value=True):
+                            manager = WallpaperManager()
+                            manager.wallpapers = test_files
+                            manager.current_wallpaper_index = 3  # Not at latest
+                            
+                            # Should jump to index 0
+                            result = manager.jump_to_latest()
+                            assert result == True
+                            assert manager.current_wallpaper_index == 0
+    
+    def test_jump_to_latest_already_at_latest(self):
+        """Test that jump_to_latest returns False when already at latest"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(3)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        manager = WallpaperManager()
+                        manager.wallpapers = test_files
+                        manager.current_wallpaper_index = 0  # Already at latest
+                        
+                        # Should return False
+                        result = manager.jump_to_latest()
+                        assert result == False
+                        assert manager.current_wallpaper_index == 0
+    
+    def test_jump_to_latest_no_wallpapers(self):
+        """Test that jump_to_latest handles no wallpapers"""
+        with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+            from bing_wallpaper_tray import WallpaperManager
+            
+            with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                    manager = WallpaperManager()
+                    manager.wallpapers = []
+                    
+                    # Should return False when no wallpapers
+                    result = manager.jump_to_latest()
+                    assert result == False
+
+
 # Run tests if executed directly
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

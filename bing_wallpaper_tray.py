@@ -143,6 +143,23 @@ class WallpaperManager:
         
         return self.set_wallpaper(wallpaper)
     
+    def jump_to_latest(self):
+        """Jump directly to the latest (newest) wallpaper"""
+        if not self.wallpapers:
+            return False
+        
+        # Already at latest
+        if self.current_wallpaper_index == 0:
+            return False
+        
+        self.current_wallpaper_index = 0
+        wallpaper = self.wallpapers[0]
+        
+        # If user jumps back to latest, they likely want auto-update to resume
+        # But we'll let them manually resume if they want
+        
+        return self.set_wallpaper(wallpaper)
+    
     def get_current_wallpaper_info(self) -> str:
         """Get info about current wallpaper"""
         if not self.wallpapers:
@@ -250,6 +267,7 @@ class TrayApp:
         # Determine if Previous/Next buttons should be enabled
         can_go_previous = self.manager.current_wallpaper_index < len(self.manager.wallpapers) - 1
         can_go_next = self.manager.current_wallpaper_index > 0
+        show_jump_to_latest = self.manager.current_wallpaper_index > 0  # Show when not at latest
         
         return pystray.Menu(
             item(status_text, lambda: None, enabled=False),
@@ -258,6 +276,7 @@ class TrayApp:
             
             item('⬅️ Previous Wallpaper', self.on_previous, enabled=can_go_previous),
             item('➡️ Next Wallpaper', self.on_next, enabled=can_go_next),
+            item('⏭️ Jump to Latest', self.on_jump_to_latest, visible=show_jump_to_latest),
             pystray.Menu.SEPARATOR,
             
             item(
@@ -287,6 +306,11 @@ class TrayApp:
     def on_next(self):
         """Handle next wallpaper"""
         self.manager.next_wallpaper()
+        self.update_menu()
+    
+    def on_jump_to_latest(self):
+        """Jump to the latest (today's) wallpaper"""
+        self.manager.jump_to_latest()
         self.update_menu()
     
     def on_toggle_auto(self):
