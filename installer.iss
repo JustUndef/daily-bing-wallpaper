@@ -416,7 +416,9 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ResultCode: Integer;
   WallpaperFolder: String;
-  DeleteUserData: Boolean;
+  DeleteConfig: Boolean;
+  DeleteWallpapers: Boolean;
+  KeptItems: String;
 begin
   { Kill running processes BEFORE trying to delete files }
   if CurUninstallStep = usUninstall then
@@ -438,33 +440,47 @@ begin
     DeleteFile(ExpandConstant('{userstartup}\{#MyAppName}.lnk'));
     DeleteFile(ExpandConstant('{userstartup}\{#MyAppName} Manager.lnk'));
     
-    { Ask user about deleting user data (config + wallpapers) }
-    DeleteUserData := MsgBox('Do you want to delete your configuration and all downloaded wallpapers?' + #13#10 + #13#10 +
-                             'Select "Yes" to remove all data (config and wallpapers).' + #13#10 +
-                             'Select "No" to keep your configuration and wallpapers.', 
-                             mbConfirmation, MB_YESNO) = IDYES;
+    { Read download folder from config BEFORE potentially deleting it }
+    WallpaperFolder := GetDownloadFolderFromConfig();
     
-    if DeleteUserData then
+    { Ask user about deleting configuration file }
+    DeleteConfig := MsgBox('Do you want to delete your configuration file?' + #13#10 + #13#10 +
+                           'This contains your settings (download folder, market, resolution, etc.)' + #13#10 + #13#10 +
+                           'Location: ' + ExpandConstant('{userappdata}\BingWallpaperDownloader'), 
+                           mbConfirmation, MB_YESNO) = IDYES;
+    
+    { Ask user about deleting downloaded wallpapers }
+    DeleteWallpapers := MsgBox('Do you want to delete all downloaded wallpapers?' + #13#10 + #13#10 +
+                               'Location: ' + WallpaperFolder, 
+                               mbConfirmation, MB_YESNO) = IDYES;
+    
+    { Delete config if requested }
+    if DeleteConfig then
     begin
-      { Read download folder from config BEFORE deleting it }
-      WallpaperFolder := GetDownloadFolderFromConfig();
-      
-      { Delete config file and app data folder }
       DelTree(ExpandConstant('{userappdata}\BingWallpaperDownloader'), True, True, True);
-      
-      { Delete downloaded wallpapers }
+    end;
+    
+    { Delete wallpapers if requested }
+    if DeleteWallpapers then
+    begin
       if DirExists(WallpaperFolder) then
       begin
         DelTree(WallpaperFolder, True, True, True);
       end;
-    end
-    else
+    end;
+    
+    { Show info about kept data if any }
+    if (not DeleteConfig) or (not DeleteWallpapers) then
     begin
-      { User wants to keep data - don't delete anything }
-      MsgBox('Your configuration and downloaded wallpapers have been kept in:' + #13#10 +
-             ExpandConstant('{userappdata}\BingWallpaperDownloader') + #13#10 + #13#10 +
-             'Wallpapers folder: ' + GetDownloadFolderFromConfig(), 
-             mbInformation, MB_OK);
+      KeptItems := 'The following items have been kept:' + #13#10 + #13#10;
+      
+      if not DeleteConfig then
+        KeptItems := KeptItems + '• Configuration: ' + ExpandConstant('{userappdata}\BingWallpaperDownloader') + #13#10;
+      
+      if not DeleteWallpapers then
+        KeptItems := KeptItems + '• Wallpapers: ' + WallpaperFolder + #13#10;
+      
+      MsgBox(KeptItems, mbInformation, MB_OK);
     end;
   end;
 end;
