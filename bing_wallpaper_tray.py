@@ -32,6 +32,44 @@ TASK_NAME = "BingWallpaperDownloader"
 # Initialize logger
 logger = setup_logger('tray')
 
+def check_single_instance() -> bool:
+    """
+    Check if another instance of the tray app is already running.
+    Returns True if this is the only instance, False if another is running.
+    Uses a Windows mutex to prevent multiple instances.
+    """
+    try:
+        # Use Windows API to create a named mutex
+        # CreateMutexW(lpMutexAttributes, bInitialOwner, lpName)
+        kernel32 = ctypes.windll.kernel32
+        ERROR_ALREADY_EXISTS = 183
+        
+        mutex_name = "Global\\BingWallpaperTrayMutex"
+        logger.info(f"Attempting to create mutex: {mutex_name}")
+        mutex = kernel32.CreateMutexW(None, False, mutex_name)
+        
+        if mutex:
+            last_error = kernel32.GetLastError()
+            logger.info(f"Mutex handle: {mutex}, GetLastError: {last_error}")
+            if last_error == ERROR_ALREADY_EXISTS:
+                # Another instance is already running
+                logger.info("Another instance detected - closing mutex and exiting")
+                kernel32.CloseHandle(mutex)
+                return False
+            else:
+                # We created the mutex, store handle globally so it persists
+                logger.info("First instance - holding mutex")
+                globals()['_mutex_handle'] = mutex
+                return True
+        else:
+            # Failed to create mutex
+            logger.warning("Failed to create mutex for single instance check")
+            return True
+    except Exception as e:
+        logger.warning(f"Could not check single instance: {e}")
+        # If check fails, allow the instance to run
+        return True
+
 
 class WallpaperManager:
     def __init__(self):
@@ -471,6 +509,18 @@ class TrayApp:
 
 def main():
     logger.info("=== Bing Wallpaper Tray App Starting ===")
+    
+    # Check if another instance is already running
+    if not check_single_instance():
+        logger.warning("Another instance is already running - exiting")
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            "Bing Wallpaper Downloader is already running.\n\nCheck your system tray for the icon.",
+            "Already Running",
+            0x40  # MB_ICONINFORMATION
+        )
+        sys.exit(0)
+    
     try:
         app = TrayApp()
         logger.info("Tray app initialized successfully")

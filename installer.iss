@@ -53,7 +53,7 @@ Name: "{group}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"
 Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--help"
 Name: "{group}\Download Folder"; Filename: "{code:GetDownloadFolder}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName} Manager"; Filename: "{app}\{#MyTrayExeName}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Download wallpaper now"; Flags: nowait postinstall skipifsilent
