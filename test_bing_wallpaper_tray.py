@@ -3,11 +3,18 @@
 Unit tests for Bing Wallpaper Tray Manager
 """
 import json
+import sys
 import tempfile
 from pathlib import Path
 from unittest import mock
 
 import pytest
+
+# Mock pystray and PIL before importing bing_wallpaper_tray
+sys.modules['pystray'] = mock.MagicMock()
+sys.modules['PIL'] = mock.MagicMock()
+sys.modules['PIL.Image'] = mock.MagicMock()
+sys.modules['PIL.ImageDraw'] = mock.MagicMock()
 
 
 class TestWallpaperManagerConfig:
@@ -196,6 +203,96 @@ class TestWallpaperInfo:
                         info = manager.get_current_wallpaper_info()
                         assert "test_wallpaper.jpg" in info
                         assert "(1 of 1)" in info
+
+
+class TestWallpaperNavigation:
+    """Test wallpaper navigation with boundary checks"""
+    
+    def test_next_wallpaper_at_newest(self):
+        """Test that next_wallpaper returns False when at newest (index 0)"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(3)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        manager = WallpaperManager()
+                        manager.wallpapers = test_files
+                        manager.current_wallpaper_index = 0
+                        
+                        # Should return False at newest
+                        result = manager.next_wallpaper()
+                        assert result == False
+                        assert manager.current_wallpaper_index == 0
+    
+    def test_previous_wallpaper_at_oldest(self):
+        """Test that previous_wallpaper returns False when at oldest (last index)"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(3)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        manager = WallpaperManager()
+                        manager.wallpapers = test_files
+                        manager.current_wallpaper_index = 2  # Last index
+                        
+                        # Should return False at oldest
+                        result = manager.previous_wallpaper()
+                        assert result == False
+                        assert manager.current_wallpaper_index == 2
+    
+    def test_next_wallpaper_middle(self):
+        """Test that next_wallpaper moves to newer wallpaper in middle"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(3)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        with mock.patch('bing_wallpaper_tray.WallpaperManager.set_wallpaper', return_value=True):
+                            manager = WallpaperManager()
+                            manager.wallpapers = test_files
+                            manager.current_wallpaper_index = 1  # Middle
+                            
+                            # Should move to newer (index 0)
+                            result = manager.next_wallpaper()
+                            assert result == True
+                            assert manager.current_wallpaper_index == 0
+    
+    def test_previous_wallpaper_middle(self):
+        """Test that previous_wallpaper moves to older wallpaper in middle"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = [Path(tmpdir) / f"wallpaper{i}.jpg" for i in range(3)]
+            for f in test_files:
+                f.touch()
+            
+            with mock.patch('bing_wallpaper_tray.CONFIG_FILE', Path("test_config.json")):
+                from bing_wallpaper_tray import WallpaperManager
+                
+                with mock.patch('bing_wallpaper_tray.WallpaperManager.is_task_enabled', return_value=False):
+                    with mock.patch('bing_wallpaper_tray.WallpaperManager.refresh_wallpaper_list'):
+                        with mock.patch('bing_wallpaper_tray.WallpaperManager.set_wallpaper', return_value=True):
+                            manager = WallpaperManager()
+                            manager.wallpapers = test_files
+                            manager.current_wallpaper_index = 1  # Middle
+                            
+                            # Should move to older (index 2)
+                            result = manager.previous_wallpaper()
+                            assert result == True
+                            assert manager.current_wallpaper_index == 2
 
 
 # Run tests if executed directly

@@ -106,32 +106,40 @@ class WallpaperManager:
             return False
     
     def next_wallpaper(self):
-        """Switch to next (older) wallpaper"""
+        """Switch to next (newer) wallpaper"""
         if not self.wallpapers:
             return False
         
-        self.current_wallpaper_index = (self.current_wallpaper_index + 1) % len(self.wallpapers)
+        # Can't go forward if already at newest (index 0)
+        if self.current_wallpaper_index == 0:
+            return False
+        
+        self.current_wallpaper_index = self.current_wallpaper_index - 1
+        wallpaper = self.wallpapers[self.current_wallpaper_index]
+        
+        # If user goes back to the latest, they might want auto-update
+        if self.current_wallpaper_index == 0 and self.user_paused:
+            # User is back at the latest - they can manually resume if they want
+            pass
+        
+        return self.set_wallpaper(wallpaper)
+    
+    def previous_wallpaper(self):
+        """Switch to previous (older) wallpaper"""
+        if not self.wallpapers:
+            return False
+        
+        # Can't go back if already at oldest
+        if self.current_wallpaper_index >= len(self.wallpapers) - 1:
+            return False
+        
+        self.current_wallpaper_index = self.current_wallpaper_index + 1
         wallpaper = self.wallpapers[self.current_wallpaper_index]
         
         # If user selects an older wallpaper, pause auto-update
         if self.current_wallpaper_index > 0:
             self.user_paused = True
             self.save_config()
-        
-        return self.set_wallpaper(wallpaper)
-    
-    def previous_wallpaper(self):
-        """Switch to previous (newer) wallpaper"""
-        if not self.wallpapers:
-            return False
-        
-        self.current_wallpaper_index = (self.current_wallpaper_index - 1) % len(self.wallpapers)
-        wallpaper = self.wallpapers[self.current_wallpaper_index]
-        
-        # If user goes back to the latest, auto-resume can be considered
-        if self.current_wallpaper_index == 0 and self.user_paused:
-            # User is back at the latest - they can manually resume if they want
-            pass
         
         return self.set_wallpaper(wallpaper)
     
@@ -239,13 +247,17 @@ class TrayApp:
         if self.manager.user_paused:
             status_text += " (Paused - user selection)"
         
+        # Determine if Previous/Next buttons should be enabled
+        can_go_previous = self.manager.current_wallpaper_index < len(self.manager.wallpapers) - 1
+        can_go_next = self.manager.current_wallpaper_index > 0
+        
         return pystray.Menu(
             item(status_text, lambda: None, enabled=False),
             item(self.manager.get_current_wallpaper_info(), lambda: None, enabled=False),
             pystray.Menu.SEPARATOR,
             
-            item('⬅️ Previous Wallpaper', self.on_previous),
-            item('➡️ Next Wallpaper', self.on_next),
+            item('⬅️ Previous Wallpaper', self.on_previous, enabled=can_go_previous),
+            item('➡️ Next Wallpaper', self.on_next, enabled=can_go_next),
             pystray.Menu.SEPARATOR,
             
             item(
