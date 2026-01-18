@@ -249,6 +249,8 @@ def main():
     markets = [args.mkt.strip()] + [m.strip() for m in args.fallback_mkts.split(",") if m.strip()]
     logger.info(f"Markets: {markets}, Resolutions: {preferred_res}")
 
+    user_paused = config.get("user_paused", False)
+
     saved: List[Path] = []
     latest_path: Optional[Path] = None
 
@@ -302,7 +304,7 @@ def main():
     for pth in saved:
         print(f"- {pth.name}")
 
-    if args.set_latest and latest_path:
+    if args.set_latest and not user_paused and latest_path:
         try:
             set_wallpaper(latest_path)
             logger.info(f"Wallpaper set to: {latest_path.name}")
