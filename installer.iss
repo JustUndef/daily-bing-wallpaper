@@ -30,7 +30,6 @@ WizardStyle=modern
 PrivilegesRequired=admin
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ArchitecturesInstallIn64BitMode=x64compatible
-InfoBeforeFile=LICENSE.txt
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
