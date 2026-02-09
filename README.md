@@ -1,12 +1,12 @@
 # Bing Wallpaper Downloader
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/v/release/iReallyHateUsernames/daily-bing-wallpaper)](https://github.com/iReallyHateUsernames/daily-bing-wallpaper/releases)
-[![GitHub stars](https://img.shields.io/github/stars/iReallyHateUsernames/daily-bing-wallpaper)](https://github.com/iReallyHateUsernames/daily-bing-wallpaper/stargazers)
+[![GitHub release](https://img.shields.io/github/v/release/JustUndef/daily-bing-wallpaper)](https://github.com/JustUndef/daily-bing-wallpaper/releases)
+[![GitHub stars](https://img.shields.io/github/stars/JustUndef/daily-bing-wallpaper)](https://github.com/JustUndef/daily-bing-wallpaper/stargazers)
 
 Automatically downloads daily Bing wallpapers and sets them as your Windows desktop background.
 
-**[📥 Download Latest Release](https://github.com/iReallyHateUsernames/daily-bing-wallpaper/releases/latest)**
+**[📥 Download Latest Release](https://github.com/JustUndef/daily-bing-wallpaper/releases/latest)**
 
 ## Features
 

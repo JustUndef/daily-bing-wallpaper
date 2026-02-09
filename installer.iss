@@ -4,7 +4,7 @@
 #define MyAppName "Bing Wallpaper Downloader"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Open Source Project"
-#define MyAppURL "https://github.com/iReallyHateUsernames/daily-bing-wallpaper"
+#define MyAppURL "https://github.com/JustUndef/daily-bing-wallpaper"
 #define MyAppExeName "BingWallpaperDownloader.exe"
 #define MyTrayExeName "BingWallpaperTray.exe"
 #define MyAppDisclaimer "IMPORTANT: This is an unofficial tool not affiliated with Microsoft or Bing. Downloaded wallpaper images are copyrighted by Microsoft and licensed only for personal desktop wallpaper use."
